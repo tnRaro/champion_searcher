@@ -1,0 +1,222 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf8" />
+    <title>챔피언 정보 검색기</title>
+    <link href="https://fonts.googleapis.com/css?family=Noto+Sans+KR|B612+Mono" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Noto Sans KR', sans-serif;
+            display: flex;
+            flex-direction: column;
+            font-size: 13pt;
+            font-weight: 400;
+        }
+        article {
+            width: 530px;
+            margin: 0 auto;
+        }
+        header {
+            margin: 53px 0;
+        }
+        header input[type="text"] {
+            display: block;
+            font-family: 'Noto Sans KR', sans-serif;
+            font-size: 13pt;
+            border-radius: 1em;
+            border: none;
+            background-color: #f5f6f7;
+            border: 1px solid #f5f6f7;
+            padding: 5px 10px;
+            margin: 10px auto;
+            color: #535353;
+            transition: background-color 0.5s ease,
+                        border-color 0.5s ease;
+        }
+        header input[type="text"]:hover {
+            background-color: #edeff1;
+        }
+        header input[type="text"]:focus {
+            background-color: white;
+            border: 1px solid #535353;
+            outline: none;
+        }
+        #champions ul {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+        }
+        li.champion {
+            display: flex;
+            width: 100%;
+            padding: 5px 10px;
+        }
+        li.champion a {
+            color: #535353;
+            text-decoration: none;
+        }
+        .name {
+            flex: 2 2 auto;
+        }
+        .box {
+            display: inline-block;
+            padding: 2px 20px;
+            margin: 0 2px;
+            text-align: center;
+            transition: border-bottom 0.5s ease;
+            border-bottom: 1px solid #fff;
+            position: relative;
+        }
+        .box:hover {
+            border-bottom: 1px solid #535353;
+        }
+        .cursor {
+            display: block;
+            position: absolute;
+            right: 0;
+            bottom: -1px;
+            font-size: 9pt;
+            color: #555;
+            pointer-events: none;
+            padding: 0 0.3em;
+            border-radius: 2px;
+            border: 1px solid #535353;
+            box-sizing: border-box;
+            font-family: 'B612 Mono', monospace;
+            opacity: 0;
+        }
+        li[data-selected="true"] .cursor {
+            opacity: 1;
+        }
+        .warn {
+            display: block;
+            text-align: center;
+            margin: 53px 0;
+        }
+    </style>
+</head>
+<body>
+    <article>
+        <header>
+            <input type="text" placeholder="챔피언 검색. [Enter]로 토글" id="keyword" autofocus="true"/>
+        </header>
+        <div id="champions"></div>
+    </article>
+    <script>
+    const $keyword = document.getElementById('keyword');
+    const $champions = document.getElementById('champions');
+    const champions = [["garen","가렌","ㄱㅏㄹㅔㄴ"],["galio","갈리오","ㄱㅏㄹㄹㅣㅇㅗ"],["gangplank","갱플랭크","ㄱㅐㅇㅍㅡㄹㄹㅐㅇㅋㅡ"],["gragas","그라가스","ㄱㅡㄹㅏㄱㅏㅅㅡ"],["graves","그레이브즈","ㄱㅡㄹㅔㅇㅣㅂㅡㅈㅡ"],["gnar","나르","ㄴㅏㄹㅡ"],["nami","나미","ㄴㅏㅁㅣ"],["nasus","나서스","ㄴㅏㅅㅓㅅㅡ"],["nautilus","노틸러스","ㄴㅗㅌㅣㄹㄹㅓㅅㅡ"],["nocturne","녹턴","ㄴㅗㄱㅌㅓㄴ"],["nunu","누누와윌럼프","ㄴㅜㄴㅜㅇㅘㅇㅟㄹㄹㅓㅁㅍㅡ"],["nidalee","니달리","ㄴㅣㄷㅏㄹㄹㅣ"],["neeko","니코","ㄴㅣㅋㅗ"],["darius","다리우스","ㄷㅏㄹㅣㅇㅜㅅㅡ"],["diana","다이애나","ㄷㅏㅇㅣㅇㅐㄴㅏ"],["draven","드레이븐","ㄷㅡㄹㅔㅇㅣㅂㅡㄴ"],["ryze","라이즈","ㄹㅏㅇㅣㅈㅡ"],["rakan","라칸","ㄹㅏㅋㅏㄴ"],["rammus","람머스","ㄹㅏㅁㅁㅓㅅㅡ"],["lux","럭스","ㄹㅓㄱㅅㅡ"],["rumble","럼블","ㄹㅓㅁㅂㅡㄹ"],["renekton","레넥톤","ㄹㅔㄴㅔㄱㅌㅗㄴ"],["leona","레오나","ㄹㅔㅇㅗㄴㅏ"],["reksai","렉사이","ㄹㅔㄱㅅㅏㅇㅣ"],["rengar","렝가","ㄹㅔㅇㄱㅏ"],["lucian","루시안","ㄹㅜㅅㅣㅇㅏㄴ"],["lulu","룰루","ㄹㅜㄹㄹㅜ"],["leblanc","르블랑","ㄹㅡㅂㅡㄹㄹㅏㅇ"],["leesin","리신","ㄹㅣㅅㅣㄴ"],["riven","리븐","ㄹㅣㅂㅡㄴ"],["lissandra","리산드라","ㄹㅣㅅㅏㄴㄷㅡㄹㅏ"],["masteryi","마스터이","ㅁㅏㅅㅡㅌㅓㅇㅣ"],["maokai","마오카이","ㅁㅏㅇㅗㅋㅏㅇㅣ"],["malzahar","말자하","ㅁㅏㄹㅈㅏㅎㅏ"],["malphite","말파이트","ㅁㅏㄹㅍㅏㅇㅣㅌㅡ"],["mordekaiser","모데카이저","ㅁㅗㄷㅔㅋㅏㅇㅣㅈㅓ"],["morgana","모르가나","ㅁㅗㄹㅡㄱㅏㄴㅏ"],["drmundo","문도박사","ㅁㅜㄴㄷㅗㅂㅏㄱㅅㅏ"],["missfortune","미스포츈","ㅁㅣㅅㅡㅍㅗㅊㅠㄴ"],["bard","바드","ㅂㅏㄷㅡ"],["varus","바루스","ㅂㅏㄹㅜㅅㅡ"],["vi","바이","ㅂㅏㅇㅣ"],["veigar","베이가","ㅂㅔㅇㅣㄱㅏ"],["vayne","베인","ㅂㅔㅇㅣㄴ"],["velkoz","벨코즈","ㅂㅔㄹㅋㅗㅈㅡ"],["volibear","볼리베어","ㅂㅗㄹㄹㅣㅂㅔㅇㅓ"],["braum","브라움","ㅂㅡㄹㅏㅇㅜㅁ"],["brand","브랜드","ㅂㅡㄹㅐㄴㄷㅡ"],["vladimir","블라디미르","ㅂㅡㄹㄹㅏㄷㅣㅁㅣㄹㅡ"],["blitzcrank","블리츠크랭크","ㅂㅡㄹㄹㅣㅊㅡㅋㅡㄹㅐㅇㅋㅡ"],["viktor","빅토르","ㅂㅣㄱㅌㅗㄹㅡ"],["poppy","뽀삐","ㅃㅗㅃㅣ"],["sion","사이온","ㅅㅏㅇㅣㅇㅗㄴ"],["sylas","사일러스","ㅅㅏㅇㅣㄹㄹㅓㅅㅡ"],["shaco","샤코","ㅅㅑㅋㅗ"],["sejuani","세주아니","ㅅㅔㅈㅜㅇㅏㄴㅣ"],["sona","소나","ㅅㅗㄴㅏ"],["soraka","소라카","ㅅㅗㄹㅏㅋㅏ"],["shen","쉔","ㅅㅞㄴ"],["shyvana","쉬바나","ㅅㅟㅂㅏㄴㅏ"],["swain","스웨인","ㅅㅡㅇㅞㅇㅣㄴ"],["skarner","스카너","ㅅㅡㅋㅏㄴㅓ"],["sivir","시비르","ㅅㅣㅂㅣㄹㅡ"],["xinzhao","신짜오","ㅅㅣㄴㅉㅏㅇㅗ"],["syndra","신드라","ㅅㅣㄴㄷㅡㄹㅏ"],["singed","신지드","ㅅㅣㄴㅈㅣㄷㅡ"],["thresh","쓰레쉬","ㅆㅡㄹㅔㅅㅟ"],["ahri","아리","ㅇㅏㄹㅣ"],["amumu","아무무","ㅇㅏㅁㅜㅁㅜ"],["aurelionsol","아우렐리온솔","ㅇㅏㅇㅜㄹㅔㄹㄹㅣㅇㅗㄴㅅㅗㄹ"],["ivern","아이번","ㅇㅏㅇㅣㅂㅓㄴ"],["azir","아지르","ㅇㅏㅈㅣㄹㅡ"],["akali","아칼리","ㅇㅏㅋㅏㄹㄹㅣ"],["aatrox","아트록스","ㅇㅏㅌㅡㄹㅗㄱㅅㅡ"],["alistar","알리스타","ㅇㅏㄹㄹㅣㅅㅡㅌㅏ"],["annie","애니","ㅇㅐㄴㅣ"],["anivia","애니비아","ㅇㅐㄴㅣㅂㅣㅇㅏ"],["ashe","애쉬","ㅇㅐㅅㅟ"],["yasuo","야스오","ㅇㅑㅅㅡㅇㅗ"],["ekko","에코","ㅇㅔㅋㅗ"],["elise","엘리스","ㅇㅔㄹㄹㅣㅅㅡ"],["monkeyking","오공","ㅇㅗㄱㅗㅇ"],["ornn","오른","ㅇㅗㄹㅡㄴ"],["orianna","오리아나","ㅇㅗㄹㅣㅇㅏㄴㅏ"],["olaf","올라프","ㅇㅗㄹㄹㅏㅍㅡ"],["yorick","요릭","ㅇㅛㄹㅣㄱ"],["udyr","우디르","ㅇㅜㄷㅣㄹㅡ"],["urgot","우르곳","ㅇㅜㄹㅡㄱㅗㅅ"],["warwick","워윅","ㅇㅝㅇㅟㄱ"],["irelia","이렐리아","ㅇㅣㄹㅔㄹㄹㅣㅇㅏ"],["evelynn","이블린","ㅇㅣㅂㅡㄹㄹㅣㄴ"],["ezreal","이즈리얼","ㅇㅣㅈㅡㄹㅣㅇㅓㄹ"],["illaoi","일라오이","ㅇㅣㄹㄹㅏㅇㅗㅇㅣ"],["jarvaniv","자르반4세","ㅈㅏㄹㅡㅂㅏㄴㅅㅔ"],["xayah","자야","ㅈㅏㅇㅑ"],["zyra","자이라","ㅈㅏㅇㅣㄹㅏ"],["zac","자크","ㅈㅏㅋㅡ"],["janna","잔나","ㅈㅏㄴㄴㅏ"],["jax","잭스","ㅈㅐㄱㅅㅡ"],["zed","제드","ㅈㅔㄷㅡ"],["xerath","제라스","ㅈㅔㄹㅏㅅㅡ"],["jayce","제이스","ㅈㅔㅇㅣㅅㅡ"],["zoe","조이","ㅈㅗㅇㅣ"],["ziggs","직스","ㅈㅣㄱㅅㅡ"],["jhin","진","ㅈㅣㄴ"],["zilean","질리언","ㅈㅣㄹㄹㅣㅇㅓㄴ"],["jinx","징크스","ㅈㅣㅇㅋㅡㅅㅡ"],["chogath","초가스","ㅊㅗㄱㅏㅅㅡ"],["karma","카르마","ㅋㅏㄹㅡㅁㅏ"],["camille","카밀","ㅋㅏㅁㅣㄹ"],["kassadin","카사딘","ㅋㅏㅅㅏㄷㅣㄴ"],["karthus","카서스","ㅋㅏㅅㅓㅅㅡ"],["cassiopeia","카시오페아","ㅋㅏㅅㅣㅇㅗㅍㅔㅇㅏ"],["kaisa","카이사","ㅋㅏㅇㅣㅅㅏ"],["khazix","카직스","ㅋㅏㅈㅣㄱㅅㅡ"],["katarina","카타리나","ㅋㅏㅌㅏㄹㅣㄴㅏ"],["kalista","칼리스타","ㅋㅏㄹㄹㅣㅅㅡㅌㅏ"],["kennen","케넨","ㅋㅔㄴㅔㄴ"],["caitlyn","케이틀린","ㅋㅔㅇㅣㅌㅡㄹㄹㅣㄴ"],["kayn","케인","ㅋㅔㅇㅣㄴ"],["kayle","케일","ㅋㅔㅇㅣㄹ"],["kogmaw","코그모","ㅋㅗㄱㅡㅁㅗ"],["corki","코르키","ㅋㅗㄹㅡㅋㅣ"],["quinn","퀸","ㅋㅟㄴ"],["kled","클레드","ㅋㅡㄹㄹㅔㄷㅡ"],["kindred","킨드레드","ㅋㅣㄴㄷㅡㄹㅔㄷㅡ"],["taric","타릭","ㅌㅏㄹㅣㄱ"],["talon","탈론","ㅌㅏㄹㄹㅗㄴ"],["taliyah","탈리야","ㅌㅏㄹㄹㅣㅇㅑ"],["tahmkench","탐켄치","ㅌㅏㅁㅋㅔㄴㅊㅣ"],["trundle","트런들","ㅌㅡㄹㅓㄴㄷㅡㄹ"],["tristana","트리스타나","ㅌㅡㄹㅣㅅㅡㅌㅏㄴㅏ"],["tryndamere","트린다미어","ㅌㅡㄹㅣㄴㄷㅏㅁㅣㅇㅓ"],["twistedfate","트위스티드페이트","ㅌㅡㅇㅟㅅㅡㅌㅣㄷㅡㅍㅔㅇㅣㅌㅡ"],["twitch","트위치","ㅌㅡㅇㅟㅊㅣ"],["teemo","티모","ㅌㅣㅁㅗ"],["pyke","파이크","ㅍㅏㅇㅣㅋㅡ"],["pantheon","판테온","ㅍㅏㄴㅌㅔㅇㅗㄴ"],["fiddlesticks","피들스틱","ㅍㅣㄷㅡㄹㅅㅡㅌㅣㄱ"],["fiora","피오라","ㅍㅣㅇㅗㄹㅏ"],["fizz","피즈","ㅍㅣㅈㅡ"],["heimerdinger","하이머딩거","ㅎㅏㅇㅣㅁㅓㄷㅣㅇㄱㅓ"],["hecarim","헤카림","ㅎㅔㅋㅏㄹㅣㅁ"]];
+    function hangul_split(keyword) {
+        return [...keyword].reduce((s, char) => {
+            const c = char.charCodeAt()-0xac00;
+            if (c >= 0 && c <= 0x2ba3)
+                return [...s, "ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ"[c/588|0],"ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ"[(c/28|0)%21]," ㄱㄲㄳㄴㄵㄶㄷㄹㄺㄻㄼㄽㄾㄿㅀㅁㅂㅄㅅㅆㅇㅈㅊㅋㅌㅍㅎ"[c%28]];
+            else
+                return [...s, char];
+        },[]).filter(e => e !== ' ').join('');
+    }
+    function suggest(keyword) {
+        return champions.filter(champion => 
+        champion[1].search(keyword) !== -1 ||
+        champion[0].search(keyword) !== -1 ||
+        champion[2].search(new RegExp([...hangul_split(keyword)].join('.*'))) !== -1
+        )
+    }
+    const store = {
+        cursor: 0,
+        focus: true,
+        champions: [],
+    };
+    function display(champions) {
+        return `<ul>
+        ${champions.map((champion, i) => `<li class="champion" data-selected=${store.cursor === i} data-index="${i}" onmouseenter="mouseenter(event)">
+        <a class="box name" href="https://www.op.gg/champion/${champion[0]}/statistics/top" target="_blank">${champion[1]}<span class="cursor">Q</span></a>
+        <a class="box" href="https://www.op.gg/champion/${champion[0]}/statistics/top/item" target="_blank">아이템<span class="cursor">W</span></a>
+        <a class="box" href="https://www.op.gg/champion/${champion[0]}/statistics/top/skill" target="_blank">스킬<span class="cursor">E</span></a>
+        <a class="box" href="https://www.op.gg/champion/${champion[0]}/statistics/top/rune" target="_blank">룬<span class="cursor">R</span></a>
+        </li>`).join("\n")}
+        </ul>`;
+    }
+    function render() {
+        const s = store.champions;
+
+        $champions.innerHTML = s.length > 0 ? display(s) : '<span class="warn">해당하는 챔피언이 없습니다.</span>';
+    }
+    function mouseenter(e) {
+        const index = parseInt(e.target.dataset.index, 10);
+        const last = store.cursor;
+        store.cursor = index;
+
+        if (last !== store.cursor) {
+            render();
+        }
+    }
+    $keyword.addEventListener("keyup", e => {
+        if (e.key === "Enter") {
+            if (store.focus) {
+                $keyword.blur();
+                store.focus = false;
+            } else {
+                store.focus = true;
+            }
+        } else {
+            store.champions = suggest($keyword.value);
+            if (store.cursor > store.champions.length - 1) {
+                store.cursor = Math.max(store.champions.length - 1, 0);
+            }
+        }
+        render();
+    });
+    $keyword.addEventListener("focusout", e => {
+        store.focus = false;
+    });
+    window.addEventListener("keydown", e => {
+        if (e.key === "Enter") {
+            if (!store.focus) {
+                $keyword.focus();
+            }
+        } else
+        if (/^[qwer]$/i.test(e.key)) {
+            if (!store.focus) {
+                const key = e.key.toLowerCase();
+                const champion = store.champions[store.cursor];
+                const link = ((key, champion_key) => {
+                    switch (key) {
+                        case "q": return `https://www.op.gg/champion/${champion_key}/statistics/top`;
+                        case "w": return `https://www.op.gg/champion/${champion_key}/statistics/top/item`;
+                        case "e": return `https://www.op.gg/champion/${champion_key}/statistics/top/skill`;
+                        case "r": return `https://www.op.gg/champion/${champion_key}/statistics/top/rune`;
+                    }
+                })(key, champion[0]);
+
+                window.open(link, "_blank");
+            }
+        } else
+        if (/^(ArrowUp|ArrowDown)$/.test(e.key)) {
+            if (store.focus) {
+                $keyword.blur();
+                store.focus = false;
+            }
+            if (e.key === "ArrowUp") {
+                store.cursor = Math.max(store.cursor - 1, 0);
+            } else
+            if (e.key === "ArrowDown") {
+                store.cursor = Math.min(store.cursor + 1, store.champions.length - 1);
+            }
+            render();
+        }
+    });
+    (function init() {
+        store.champions = suggest($keyword.value)
+        render();
+    })();
+    function dev_get_champions() {
+        // standalone
+        // run in "https://www.op.gg/champion/statistics"
+        return JSON.stringify($('.champion-index__champion-item').toArray().map(e=>[$(e).data('champion-key'),$(e).data('champion-name'),[...$(e).data('champion-name')].reduce((s,code)=>{const c=code.charCodeAt()-0xac00;return[...s,"ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ"[c/588|0],"ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ"[(c/28|0)%21]," ㄱㄲㄳㄴㄵㄶㄷㄹㄺㄻㄼㄽㄾㄿㅀㅁㅂㅄㅅㅆㅇㅈㅊㅋㅌㅍㅎ"[c%28]];},[]).filter(e=>e!==' ').join('')]));
+    }
+    </script>
+</body>
+</html>
