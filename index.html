@@ -182,11 +182,23 @@
                 return [...s, char];
         },[]).filter(e => e !== ' ').join('');
     }
+    function andro_split(keyword) {
+        return [...keyword].map(char => {
+            const c = char.charCodeAt()
+            if (c >= 65 && c <= 90)
+                return "ㅁㅠㅊㅇㄸㄹㅎㅛㅑㅓㅏㅣㅡㅠㅒㅖㅃㄲㄴㅆㅕㅍㅉㅌㅛㅋ"[c - 65]
+            else if (c >= 97 && c <= 122)
+                return "ㅁㅠㅊㅇㄷㄹㅎㅗㅑㅓㅏㅣㅡㅜㅐㅔㅂㄱㄴㅅㅕㅍㅈㅌㅛㅋ"[c - 97]
+            else
+                return char;
+        }).join('')
+    }
     function suggest(keyword) {
         return champions.filter(champion => 
         champion[1].search(keyword) !== -1 ||
         champion[0].search(keyword) !== -1 ||
-        champion[2].search(new RegExp([...hangul_split(keyword)].join('.*'))) !== -1
+        new RegExp([...hangul_split(keyword)].join('.*')).test(champion[2]) ||
+        new RegExp([...andro_split(keyword)].join('.*')).test(champion[2])
         )
     }
     const store = {
@@ -195,6 +207,7 @@
         tabdown: false,
         champions: []
     };
+    const qwertymap = "";
     const position_wrap = {
         "탑": "top",
         "정글": "jungle",
