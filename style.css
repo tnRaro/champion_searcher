@@ -1,0 +1,167 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Noto Sans KR', sans-serif;
+    display: flex;
+    flex-direction: column;
+    font-size: 13pt;
+    font-weight: 400;
+}
+article {
+    width: 530px;
+    margin: 0 auto;
+    background-color: #ffffffc7;
+    box-shadow: 0px 0px 10px white;
+    color: #535353;
+    word-break: keep-all;
+}
+article h1 {
+    font-size: 1.5em;
+    margin: 0.83em 0;
+}
+article h2 {
+    font-size: 1.2em;
+    margin: 0.83em 0;
+}
+a {
+    color: #535353;
+}
+header {
+    padding: 53px 0;
+}
+header input[type="text"] {
+    display: block;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 13pt;
+    border-radius: 1em;
+    border: none;
+    background-color: #f5f6f7;
+    border: 1px solid #f5f6f7;
+    padding: 5px 10px;
+    margin: 10px auto;
+    color: #535353;
+    width: 260px;
+    transition: background-color 0.5s ease,
+                border-color 0.5s ease;
+}
+header #why {
+    position: absolute;
+    width: 530px;
+}
+header #why a {
+    display: block;
+    color: #bfbfbf;
+    font-size: 11pt;
+    width: 260px;
+    margin: 0px auto;
+}
+header input[type="text"]:hover {
+    background-color: #edeff1;
+}
+header input[type="text"]:focus {
+    background-color: white;
+    border: 1px solid #535353;
+    outline: none;
+}
+#champions {
+    padding: 1em 0;
+    border-bottom: 1px solid #535353;
+}
+#champions ul {
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: space-between;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+li.champion {
+    display: flex;
+    margin: 0px 10px;
+    text-align: center;
+    flex: 1 1 auto;
+    justify-content: space-between;
+}
+li.champion a {
+    display: inline-block;
+    color: #535353;
+    margin: 5px 5px;
+    padding: 2px 20px;
+    text-decoration: none;
+    flex: 0 1 auto;
+    position: relative;
+    transition: border-bottom 0.5s ease;
+    border-bottom: 1px solid #fff;
+}
+li.champion a:first-child {
+    flex: 1 2 auto;
+    text-align: left;
+}
+li.champion a:first-child:hover {
+    border-bottom: 1px solid #fff;
+}
+li.champion a:hover {
+    border-bottom: 1px solid #535353;
+}
+li.champion .key {
+    display: block;
+    position: absolute;
+    left: -1px;
+    bottom: 5px;
+    font-size: 9pt;
+}
+.key {
+    display: inline-block;
+    position: initial;
+    font-size: .7em;
+    vertical-align: top;
+    color: #555;
+    pointer-events: none;
+    padding: 0 0.3em;
+    margin: 0.3em 0;
+    border-radius: 2px;
+    border: 1px solid #535353;
+    box-sizing: border-box;
+    font-family: 'B612 Mono', monospace;
+}
+li[data-selected="false"] .key {
+    transition: opacity 0.3s ease;
+    opacity: 0;
+}
+li[data-selected="false"] a:first-child .key {
+    opacity: 0.5;
+}
+li[data-selected="true"] .key {
+    transition: opacity 0.3s ease;
+    opacity: 1;
+}
+li[data-selected="true"]:hover .key {
+    opacity: 0;
+}
+li[data-selected="true"]:hover a:first-child .key {
+    opacity: 1;
+}
+.warn {
+    display: block;
+    text-align: center;
+    margin: 53px 0;
+}
+#and-then {
+    display: inline-block;
+    width: 100%;
+    text-align: right;
+    color: #535353;
+}
+#wards {
+    z-index: -1;
+}
+.ward {
+    display: block;
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    background: url('res/ward.png');
+}
+footer {
+    height: 100vh;
+}
